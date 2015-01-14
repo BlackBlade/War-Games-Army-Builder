@@ -1,0 +1,257 @@
+package views;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.border.TitledBorder;
+
+import models.IModel;
+import modifiedpanels.ImagePanel;
+import modifiedpanels.StatsPanel;
+import controllers.UnitCreationController;
+import exceptions.NullFieldException;
+import exceptions.UnitNotFoundException;
+
+public class CreateArmyCodexGUI extends JFrame implements ICreateArmyCodexGUI, ActionListener {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private ArmyBuildGUI frameFather;
+	private ICreateArmyCodexObserver observer;
+	private static final String FILENAME = "C:/Users/Marisa/Desktop/skyrim.jpg";
+	private final static Dimension FRAME_DIM = new Dimension(760, 520);
+	private final static Dimension MAINPANEL_DIM = new Dimension(754, 473);
+	private final static Dimension DESCRIPTIONPANELSCROLL_DIM = new Dimension(170, 300);
+	private static final String ERROR_STR = "Error";
+	
+	
+	private final static int BUTTONHEIGHT = 25;
+	private final static int BUTTONWIDTH = 90;
+	private final static int COORDINATE_X = 15;
+	private final static int COORDINATE_X_1 = 535;
+	private final static int COORDINATE_Y_1 = 10;
+	private final static int COORDINATE_X_2 = 25;
+	private final static int COORDINATE_Y_2 = 35;
+	private final static int SPACE = 100;
+	private final static int PANELHEIGHT = 350;
+	private final static int PANELWIDTH = 505;
+	private final static int SCROLLPANELHEIGHT = 300;
+	private final static int SCROLLPANELWIDTH = 475;
+	private final static int DESCRIPTIONPANELHEIGHT = 335;
+	private final static int DESCRIPTIONPANELWIDTH =200;
+	
+	private JFileChooser fileDialog;
+	private ImagePanel mainPanel;
+	private JPanel currentUnitListPanel;
+	private JList<Object> currentUnitList;
+	private JScrollPane currentUnitListPanelScroll;
+	private StatsPanel stats;
+	private JPanel descriptionPanel;
+	private JTextPane descriptionPane;
+	private JScrollPane descriptionPanelScroll;
+	private JButton buttonAddNew;
+	private JButton buttonDelete;
+	private JButton buttonEdit;
+	private JMenuBar menuBar;
+	private JMenu mainMenu;
+	private JMenuItem menuLoadCodex;
+	private JMenuItem menuSaveCodex;
+
+	public CreateArmyCodexGUI(ArmyBuildGUI frame) {
+		super();
+		this.frameFather = frame;
+		this.fileDialog = new JFileChooser();
+		this.setResizable(false);
+		this.setTitle("CreateArmyListGUI");
+		this.setSize(FRAME_DIM);
+		getContentPane().setLayout(null);
+		
+		mainPanel = new ImagePanel(FILENAME,MAINPANEL_DIM);
+		mainPanel.setLocation(0, 0);
+		mainPanel.setSize(MAINPANEL_DIM);
+		getContentPane().add(mainPanel);
+		mainPanel.setLayout(null);
+		
+		currentUnitListPanel = new JPanel();
+		currentUnitListPanel.setBorder(new TitledBorder(UIManager
+				.getBorder("TitledBorder.border"), "CurrentUnitList",
+				TitledBorder.LEADING, TitledBorder.TOP, null, Color.WHITE));
+		currentUnitListPanel.setBounds(COORDINATE_X_2, COORDINATE_Y_1, PANELWIDTH, PANELHEIGHT);
+		mainPanel.add(currentUnitListPanel);
+		currentUnitListPanel.setLayout(null);
+		currentUnitListPanel.setOpaque(false);
+
+		currentUnitList = new JList<>();
+		currentUnitList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		currentUnitList.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				updateDescription();
+			}
+		});
+		currentUnitList.setOpaque(false);
+
+		currentUnitListPanelScroll = new JScrollPane(currentUnitList);
+		currentUnitListPanelScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		currentUnitListPanelScroll.setSize(SCROLLPANELWIDTH, SCROLLPANELHEIGHT);
+		currentUnitListPanelScroll.setLocation(COORDINATE_X, COORDINATE_Y_2);
+		currentUnitListPanelScroll.setOpaque(false);
+		currentUnitListPanelScroll.getViewport().setOpaque(false);
+		currentUnitListPanel.add(currentUnitListPanelScroll);
+		
+		stats = new StatsPanel();
+		stats.setLocation(COORDINATE_X, COORDINATE_Y_1);
+		stats.setOpaque(false);
+		currentUnitListPanel.add(stats);
+
+		descriptionPanel = new JPanel();
+		descriptionPanel.setBorder(new TitledBorder(UIManager
+				.getBorder("TitledBorder.border"), "Description",
+				TitledBorder.LEADING, TitledBorder.TOP, null, Color.WHITE));
+		descriptionPanel.setBounds(COORDINATE_X_1, COORDINATE_Y_1,  DESCRIPTIONPANELWIDTH, DESCRIPTIONPANELHEIGHT);
+		mainPanel.add(descriptionPanel);
+		descriptionPanel.setLayout(null);
+		descriptionPanel.setOpaque(false);
+
+		descriptionPane = new JTextPane();
+		descriptionPane.setOpaque(false);
+		descriptionPane.setForeground(Color.WHITE);
+		
+		descriptionPanelScroll = new JScrollPane(descriptionPane);
+		descriptionPanelScroll.setSize(DESCRIPTIONPANELSCROLL_DIM);
+		descriptionPanelScroll.setLocation(COORDINATE_X, COORDINATE_Y_1*2);
+		descriptionPanelScroll.setOpaque(false);
+		descriptionPanelScroll.getViewport().setOpaque(false);
+		descriptionPanel.add(descriptionPanelScroll);
+				
+		buttonAddNew = new JButton("Add New");
+		buttonAddNew.addActionListener(this);
+		buttonAddNew.setBounds(COORDINATE_X + COORDINATE_X_2, COORDINATE_Y_1 + PANELHEIGHT + SPACE/2, BUTTONWIDTH, BUTTONHEIGHT);
+		mainPanel.add(buttonAddNew);
+
+		buttonDelete = new JButton("Delete");
+		buttonDelete.addActionListener(this);
+		buttonDelete.setBounds(COORDINATE_X + COORDINATE_X_2 + SPACE, COORDINATE_Y_1 + PANELHEIGHT+SPACE/2, BUTTONWIDTH, BUTTONHEIGHT);
+		mainPanel.add(buttonDelete);
+		
+		buttonEdit = new JButton("Edit");
+		buttonEdit.addActionListener(this);
+		buttonEdit.setBounds(COORDINATE_X + COORDINATE_X_2 + SPACE*2, COORDINATE_Y_1 + PANELHEIGHT + SPACE/2, BUTTONWIDTH, BUTTONHEIGHT);
+		mainPanel.add(buttonEdit);
+		
+		menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
+
+		mainMenu = new JMenu("MainMenu");
+		menuBar.add(mainMenu);
+		
+		menuSaveCodex = new JMenuItem("Save Codex");
+		menuSaveCodex.addActionListener(this);
+		mainMenu.add(menuSaveCodex);
+
+		menuLoadCodex = new JMenuItem("Load Codex");
+		menuLoadCodex.addActionListener(this);
+		mainMenu.add(menuLoadCodex);
+		
+		this.addWindowListener(new WindowAdapter(){public void windowClosing(WindowEvent e) {
+			frameFather.setEnabled(true);
+		}});
+		
+		this.setVisible(true);
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		Object source = e.getSource();
+		if (source == menuLoadCodex) {
+			if(this.fileDialog.showOpenDialog(this) == JFileChooser.APPROVE_OPTION){
+				this.observer.loadCodexCmd(this.fileDialog.getSelectedFile().getPath());
+				this.currentUnitList.setListData(this.observer.getModel().getCodexlist().toArray());			
+			}
+		} else if (source == menuSaveCodex) {
+			if(this.fileDialog.showSaveDialog(this) == JFileChooser.APPROVE_OPTION){
+				this.observer.saveCodexCmd(this.fileDialog.getSelectedFile().getPath());
+			}
+		} else if (source == buttonAddNew){
+			this.setEnabled(false);
+			final UnitCreationController controller = new UnitCreationController(this.observer.getModel());
+			final IUnitCreateGUI gui = new UnitCreateGUI(this);
+			controller.setView(gui);
+		} else if (source == buttonDelete){
+			try {
+				this.observer.getModel().removeFromCodex(this.observer.getModel().getCodexlist().get(currentUnitList.getSelectedIndex()));
+			} catch (UnitNotFoundException
+					| NullFieldException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			this.currentUnitList.setListData(this.observer.getModel().getCodexlist().toArray());
+		}
+	}
+	
+	@Override
+	public void updateDescription(){
+		descriptionPane.setText(this.observer.getModel().getCodexlist().get(currentUnitList.getSelectedIndex()).getDescription());
+	}
+	
+	@Override
+	public JList<Object> getCodexList() {
+		return this.currentUnitList;
+	}
+	
+	public void updateView(){
+		this.currentUnitList.setListData(this.observer.getModel().getCodexlist().toArray());
+	}
+	
+	public void showErrorDialog(String msg){
+		JOptionPane.showMessageDialog(this, msg, ERROR_STR, JOptionPane.ERROR_MESSAGE);
+	}
+	
+	@Override
+	public void attachObserver(ICreateArmyCodexObserver newObserver) {
+		this.observer = newObserver;
+	}
+	
+	public interface ICreateArmyCodexObserver {
+		/**
+	     * Method invoked when a load codex command has been triggered by the view
+	     * Source: A. Santi Acme Exam project 
+	     * @param path The path from which load the model
+	     */
+	    void loadCodexCmd(String path);
+	    
+	    /**
+	     * Method invoked when a save codex command has been triggered by the view
+	     * Source: A. Santi Acme Exam project 
+	     * @param path The path to which save the model
+	     */
+	    void saveCodexCmd(String path);
+	    
+		IModel getModel();
+
+		void setView(ICreateArmyCodexGUI newGui);		
+	}
+}

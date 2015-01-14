@@ -1,0 +1,177 @@
+package views;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.border.TitledBorder;
+
+import exceptions.NullFieldException;
+import models.AbstractCharacter;
+import models.IModel;
+import models.IUnit;
+import models.Item;
+import modifiedpanels.ImagePanel;
+
+public class ItemGUI extends JFrame implements IItemGUI, ActionListener {
+
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private ItemObserver observer;
+	private int Index;
+	private final ArmyBuildGUI frameFather;
+	private static final int LABELHEIGHT = 15;
+	private static final int LABELWIDTH = 65;
+	private static final int TEXTANDCHOICEHEIGHT = 20;
+	private static final int TEXTANDCHOICEWIDTH = 100;
+	private static final int TEXT_COLUMNS = 10;
+	private static final int COORDINATE_X = 10;
+	private static final int COORDINATE_Y = 10;
+	private static final int COORDINATE_X_1 = 85;
+	private static final int COORDINATE_Y_1 = 5;
+	private static final int SPACE = 30;
+	
+	private static final Dimension PANELDIMENSION = new Dimension(394, 272);
+	private static final Dimension DESCRIPTIONPANELDIMENSION = new Dimension(375, 170);
+	private static final Dimension FRAMEDIMENSION = new Dimension(400, 300);
+	private static final Dimension DESCRIPTIONPANELSCROLL_DIM = new Dimension(355, 140);
+	private static final String FILENAME = "C:/Users/Marisa/Desktop/skyrim.jpg";
+	private static final String[] STR = new String[]{"Common Item","Magic Item"};
+	
+	private ImagePanel itemMenuPanel;
+	private JPanel descriptionPanel;
+	private JTextField itemNameText;
+	private JTextField itemCostText;
+	private JTextArea descriptionText;
+	private JScrollPane descriptionPanelScroll;
+	private JLabel labelItemName;
+	private JLabel labelItemCost;
+	private JLabel labelItemType;
+	private JComboBox<String> choice;
+	private JButton buttonConfirmItem;
+
+	public ItemGUI(final int newIndex, ArmyBuildGUI frame) {
+		this.Index = newIndex;
+		this.frameFather = frame;
+		setResizable(false);
+		this.setTitle("ItemGUI");
+		this.setSize(FRAMEDIMENSION);
+		this.getContentPane().setLayout(null);
+		
+		itemMenuPanel = new ImagePanel(FILENAME, PANELDIMENSION);
+		this.getContentPane().add(itemMenuPanel);
+		itemMenuPanel.setLocation(0, 0);
+		itemMenuPanel.setSize(PANELDIMENSION);
+		itemMenuPanel.setLayout(null);
+
+		labelItemName = new JLabel("ITEM NAME");
+		labelItemName.setForeground(Color.WHITE);
+		labelItemName.setBounds(COORDINATE_X, COORDINATE_Y, LABELWIDTH, LABELHEIGHT);
+		itemMenuPanel.add(labelItemName);
+
+		labelItemCost = new JLabel("ITEM COST");
+		labelItemCost.setForeground(Color.WHITE);
+		labelItemCost.setBounds(COORDINATE_X, COORDINATE_Y + SPACE, LABELWIDTH, LABELHEIGHT);
+		itemMenuPanel.add(labelItemCost);
+
+		labelItemType = new JLabel("ITEM TYPE");
+		labelItemType.setForeground(Color.WHITE);
+		labelItemType.setBounds(COORDINATE_X, COORDINATE_Y + 2*SPACE, LABELWIDTH, LABELHEIGHT);
+		itemMenuPanel.add(labelItemType);
+
+		itemNameText = new JTextField();
+		itemNameText.setBounds(COORDINATE_X_1, COORDINATE_Y_1, TEXTANDCHOICEWIDTH, TEXTANDCHOICEHEIGHT);
+		itemMenuPanel.add(itemNameText);
+		itemNameText.setColumns(TEXT_COLUMNS);
+
+		itemCostText = new JTextField();
+		itemCostText.setBounds(COORDINATE_X_1, COORDINATE_Y_1 + SPACE, TEXTANDCHOICEWIDTH, TEXTANDCHOICEHEIGHT);
+		itemMenuPanel.add(itemCostText);
+		itemCostText.setColumns(TEXT_COLUMNS);
+		
+		choice = new JComboBox<String>(STR);
+		choice.setBounds(COORDINATE_X_1, COORDINATE_Y_1 + (2*SPACE), TEXTANDCHOICEWIDTH, TEXTANDCHOICEHEIGHT);
+		itemMenuPanel.add(choice);
+
+		
+		descriptionPanel = new JPanel();
+		descriptionPanel.setLayout(null);
+		descriptionPanel.setBorder(new TitledBorder(null, "Description",
+				TitledBorder.LEADING, TitledBorder.TOP, null, Color.WHITE));
+		descriptionPanel.setBounds(COORDINATE_X, COORDINATE_Y + 3*SPACE, (int)DESCRIPTIONPANELDIMENSION.getWidth(), (int)DESCRIPTIONPANELDIMENSION.getHeight());
+		descriptionPanel.setOpaque(false);
+		itemMenuPanel.add(descriptionPanel);
+
+		descriptionText = new JTextArea();
+		descriptionText.setForeground(Color.WHITE);
+		descriptionText.setLineWrap(true);
+		descriptionText.setOpaque(false);
+
+		descriptionPanelScroll = new JScrollPane(descriptionText);
+		descriptionPanelScroll.setSize(DESCRIPTIONPANELSCROLL_DIM);
+		descriptionPanelScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		descriptionPanelScroll.setLocation(COORDINATE_X, COORDINATE_Y * 2);
+		descriptionPanelScroll.setOpaque(false);
+		descriptionPanelScroll.getViewport().setOpaque(false);
+		descriptionPanel.add(descriptionPanelScroll);
+
+		buttonConfirmItem = new JButton("CONFIRM ITEM");
+		buttonConfirmItem.addActionListener(this);
+		buttonConfirmItem.setBounds(240, COORDINATE_Y_1 + SPACE, 120, 25);
+		itemMenuPanel.add(buttonConfirmItem);
+
+		this.addWindowListener(new WindowAdapter(){public void windowClosing(WindowEvent e) {
+			frameFather.setEnabled(true);
+		}});
+		
+		this.setVisible(true);
+	}
+	
+	public void actionPerformed (ActionEvent e){
+		Object source = e.getSource(); 
+		if (source == buttonConfirmItem){
+			Item item = null;
+			try {
+				item = new Item(this.itemNameText.getText(), this.descriptionText.getText(), Integer.parseInt(this.itemCostText.getText()));
+			} catch (NumberFormatException | NullFieldException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			this.observer.confirmItem(Index, item);
+			frameFather.setEnabled(true);
+			this.dispose();
+		}
+	}
+	
+	@Override
+	public void attachObserver(ItemObserver newObserver){
+		this.observer = newObserver;
+	}
+	
+	public interface ItemObserver {
+		
+		IModel getModel();
+		
+		void confirmItem(final int Index, final Item item);
+		
+	}
+	
+	public Object getComboBoxValue(){
+		return this.choice.getSelectedItem();
+	}
+}

@@ -1,0 +1,27 @@
+package views;
+
+import views.ItemGUI.ItemObserver;
+/**
+ * Interface for the class ItemGUI.
+ * @author MatteoOrzes
+ *
+ */
+public interface IItemGUI {
+	/**
+	 * Attach a new ItemObserver to the GUI.
+	 * @param newObserver the new observer for the GUI.
+	 */
+	void attachObserver(ItemObserver newObserver);
+<<<<<<< local
+	/**
+	 * 
+	 * @return
+	 */
+	Object getComboBoxValue();
+=======
+	
+	Object getCheckBoxValue();
+	
+	void showErrorDialog(String msg);
+>>>>>>> other
+}

@@ -1,0 +1,127 @@
+package models;
+
+import java.util.*;
+import exceptions.ItemNotFoundException;
+import exceptions.StatsFaultException;
+
+/**
+ * It models the concept of Hero.
+ * @author Luca Longobardi
+ *
+ */
+
+public class Hero extends AbstractCharacter implements IHero {
+	
+	private static final int DEFAULT_VALUE_FOR_BSB = 25;
+	private boolean hasBsb = false;
+	private List<Item> magicItemList = new LinkedList<>();
+	private transient String toString = null;
+
+	public Hero(int[] stats, String name, String description, int cost) throws StatsFaultException {
+		super(stats, name, description, cost);
+	}
+	
+	protected void setCurrentOccurrence(int i){
+		throw new UnsupportedOperationException("ERROR: cannot modify occurrence of a Hero");
+	}
+
+	@Override
+	public void addOccurrence() {
+		throw new UnsupportedOperationException("ERROR: cannot modify occurrence of a Hero");
+		
+	}
+
+	@Override
+	public void removeOccurrence() {
+		throw new UnsupportedOperationException("ERROR: cannot modify occurrence of a Hero");
+		
+	}
+	
+	public void setBsb(){
+		if(!this.hasBsb){
+			this.hasBsb = true;
+			this.addToCost(DEFAULT_VALUE_FOR_BSB);
+		}else{
+			this.hasBsb = false;
+			this.subtractFromCost(DEFAULT_VALUE_FOR_BSB);
+		}
+	}
+
+	@Override
+	public void addMagicItem(Item item) {
+		this.checkNullPointer(item);
+		magicItemList.add(item);
+		this.addToCost(item.getCost());
+		
+	}
+
+	@Override
+	public void removeMagicItem(Item item) throws ItemNotFoundException {
+		this.checkNullPointer(item);
+		if(magicItemList.contains(item)){
+			magicItemList.remove(item);
+			this.subtractFromCost(item.getCost());
+		}else{
+			throw new ItemNotFoundException();
+		}
+		
+	}
+	/**
+	 * Custom toString used to print the important characteristic of a Hero.
+	 * this method will be used in the model to print a Text file of the Army list.
+	 * @return toString
+	 * @author Luca Longobardi
+	 */
+	@Override
+	public String toString(){
+		if(toString == null){
+			toString = "\n"+this.getCurrentOccurrence()+" "+this.getName()+" @ "+this.getCost();
+			toString += "\n     ";
+			
+			Iterator<Item> it = this.getCommonItemListIterator();
+			while(it.hasNext()){
+				toString += it.next().getName()+"; ";
+			}
+			
+			toString += "\n     ";
+			
+			it = this.magicItemList.iterator();
+			Item temp = null;
+			while(it.hasNext()){
+				temp = it.next();
+				toString += temp.getName()+"["+temp.getCost()+"]\n     ";
+				
+			}
+			
+			if(this.getMount() != null){
+				toString += this.getMount().getName()+"["+this.getMount().getCost()+"]";
+			}
+			toString += "\n";
+			
+		}
+		return toString;
+	}
+	
+	/*
+	 * Main di prova per testare il corretto funzionament della classe e soprattutto del toString
+	 * Funziona
+	 */
+	
+
+	public static void main(String args[]){
+		try{
+			Hero hero = new Hero(new int[]{1,1,1,1,1,1,1,1,1,1,1,1}, "Hero", "Tons of damage", 10);
+			hero.addMagicItem(new Item("Kaeleth", "Molto forte", 35));
+			hero.addMagicItem(new Item("Armatura nera", "Molto forte", 25));
+			hero.addMount(new Mount(new int[]{1,1,1,1,1,1,1,1,1,1,1,1}, "Dragon", "Tons of damage", 10));
+			hero.addCommonItem(new Item("armatura pesante", "", 1));
+			hero.addCommonItem(new Item("scudo", "", 1));
+			System.out.println(hero.toString());
+			
+		}catch(Exception e){
+			System.out.println("Fault");
+		}
+	}
+
+
+}

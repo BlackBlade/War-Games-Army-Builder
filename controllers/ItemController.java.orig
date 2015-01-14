@@ -1,0 +1,47 @@
+package controllers;
+import models.IModel;
+import models.Item;
+import views.IItemGUI;
+import views.ItemGUI;
+import exceptions.NullFieldException;
+
+public class ItemController implements ItemGUI.ItemObserver {
+
+	IModel model;
+	IItemGUI gui;
+	
+	public ItemController(IModel newModel){
+		this.model = newModel;
+	}
+	
+	public void setView(IItemGUI newGui){
+		this.gui = newGui;
+		this.gui.attachObserver(this);
+	}
+	
+	@Override
+	public void confirmItem(int Index, Item item) {
+		if (this.gui.getComboBoxValue().equals("Magic Item")){
+			try {
+				this.model.getArmyList().get(Index).addMagicItem(item);
+			} catch (NullFieldException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else if ((this.gui.getComboBoxValue().equals("Common Item"))){
+			try {
+				this.model.getArmyList().get(Index).addCommonItem(item);
+			} catch (NullFieldException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} 
+	}
+
+	@Override
+	public IModel getModel() {
+		return this.model;
+	}
+
+
+}
